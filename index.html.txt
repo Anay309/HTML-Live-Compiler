@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live HTML Editor</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: white;
+        color: black;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Top Bar */
+    .top-bar {
+        background-color: #007BFF;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: white;
+    }
+
+    .top-bar h1 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    /* Buttons */
+    .button-group button {
+        background-color: white;
+        border: none;
+        padding: 8px 12px;
+        margin-left: 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        color: black;
+        transition: background 0.3s;
+    }
+
+    .button-group button:hover {
+        background-color: #ddd;
+    }
+
+    /* Editor Layout */
+    .editor-container {
+        flex: 1;
+        display: flex;
+        height: calc(100vh - 50px);
+        overflow: hidden;
+    }
+
+    /* Input Area */
+    #htmlInput {
+        width: 50%;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 14px;
+        resize: none;
+        border: none;
+        outline: none;
+        background-color: inherit;
+        color: inherit;
+    }
+
+    /* Divider */
+    .divider {
+        width: 5px;
+        background: #ccc;
+        cursor: col-resize;
+    }
+
+    /* Output Area */
+    .output-container {
+        flex: 1;
+        position: relative;
+        background-color: inherit;
+        color: inherit;
+    }
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background-color: white;
+    }
+
+    /* Output Placeholder */
+    .placeholder {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        opacity: 0.5;
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    /* Dark Mode */
+    body.dark-mode {
+        background-color: #121212;
+        color: white;
+    }
+
+    body.dark-mode #htmlInput {
+        background-color: #1e1e1e;
+        color: white;
+    }
+
+    body.dark-mode iframe {
+        background-color: #1e1e1e;
+        color: white;
+    }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+    <h1>Live HTML Editor</h1>
+    <div class="button-group">
+        <button onclick="toggleMode()">Dark/Light</button>
+        <button onclick="openInNewTab()">Open in New Tab</button>
+        <button onclick="saveCode()">Save Code</button>
+    </div>
+</div>
+
+<div class="editor-container">
+    <textarea id="htmlInput" placeholder="Type your HTML here..." oninput="updateOutput()"></textarea>
+    <div class="divider" onmousedown="startDragging(event)"></div>
+    <div class="output-container">
+        <iframe id="outputFrame"></iframe>
+        <div class="placeholder" id="placeholderText">Output will be shown here...</div>
+    </div>
+</div>
+
+<script>
+    const htmlInput = document.getElementById("htmlInput");
+    const outputFrame = document.getElementById("outputFrame");
+    const placeholderText = document.getElementById("placeholderText");
+    let isDragging = false;
+
+    function updateOutput() {
+        const content = htmlInput.value;
+        if (content.trim() === "") {
+            placeholderText.style.display = "block";
+            outputFrame.srcdoc = "";
+        } else {
+            placeholderText.style.display = "none";
+            outputFrame.srcdoc = content;
+        }
+    }
+
+    function toggleMode() {
+        document.body.classList.toggle("dark-mode");
+    }
+
+    function openInNewTab() {
+        const newWindow = window.open();
+        newWindow.document.write(htmlInput.value);
+        newWindow.document.close();
+    }
+
+    function saveCode() {
+        const blob = new Blob([htmlInput.value], { type: "text/html" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "code.html";
+        link.click();
+    }
+
+    function startDragging(e) {
+        isDragging = true;
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("mouseup", stopDragging);
+    }
+
+    function drag(e) {
+        if (!isDragging) return;
+        const container = document.querySelector(".editor-container");
+        const offsetX = e.clientX - container.offsetLeft;
+        const minWidth = 100;
+        const maxWidth = container.clientWidth - 100;
+        if (offsetX > minWidth && offsetX < maxWidth) {
+            htmlInput.style.width = offsetX + "px";
+        }
+    }
+
+    function stopDragging() {
+        isDragging = false;
+        document.removeEventListener("mousemove", drag);
+        document.removeEventListener("mouseup", stopDragging);
+    }
+</script>
+
+</body>
+</html>
